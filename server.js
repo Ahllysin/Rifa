@@ -41,7 +41,8 @@ const PUBLIC = path.join(__dirname, 'public');
 const SB_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const usaSupabase = !!(SB_URL && SB_KEY);
-const sbH = () => ({ apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' });
+// Chave antiga (JWT, começa com "eyJ") vai também em Authorization; a nova (sb_secret_...) só em apikey.
+const sbH = () => ({ apikey: SB_KEY, ...(SB_KEY.startsWith('eyJ') ? { Authorization: 'Bearer ' + SB_KEY } : {}), 'Content-Type': 'application/json' });
 let db = { orders: [] };
 
 async function carregarDB() {
