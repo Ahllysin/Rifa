@@ -1,0 +1,9 @@
+{
+  "name": "rifa-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rifa online com PIX automático (Mercado Pago)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

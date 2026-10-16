@@ -1,0 +1,23 @@
+# Blueprint do Render: cria o serviço com um clique. Os valores secretos você preenche no painel.
+services:
+  - type: web
+    name: rifa-ahllysin
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/rifa
+    envVars:
+      - { key: TRUST_PROXY, value: "1" }
+      - { key: TITULO, value: Rifa do Ahllysin }
+      - { key: PREMIO, sync: false }
+      - { key: TOTAL, sync: false }
+      - { key: PRECO, sync: false }
+      - { key: VENDA_DIRETA, sync: false }
+      - { key: ADMIN_SENHA, sync: false }
+      - { key: ADMIN_IPS, sync: false }
+      - { key: MP_ACCESS_TOKEN, sync: false }
+      - { key: MP_WEBHOOK_SECRET, sync: false }
+      - { key: PUBLIC_URL, sync: false }
+      - { key: SUPABASE_URL, sync: false }
+      - { key: SUPABASE_SERVICE_KEY, sync: false }
