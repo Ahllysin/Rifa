@@ -203,8 +203,15 @@ function limitado(chave, max, janelaMs) {
   if (hits.size > 5000) for (const [k, v] of hits) if (!v.length || agora - v[v.length - 1] > janelaMs) hits.delete(k);
   return l.length > max;
 }
-// Atrás de proxy (Render, Railway...) o IP real vem no cabeçalho; defina TRUST_PROXY=1 lá.
-const ipDe = req => (process.env.TRUST_PROXY && String(req.headers['x-forwarded-for'] || '').split(',')[0].trim()) || req.socket.remoteAddress;
+// Atrás de proxy (Render, Railway...) defina TRUST_PROXY com o número de proxies confiáveis (normalmente 1).
+// O cliente pode forjar o começo do X-Forwarded-For; só vale o que os NOSSOS proxies acrescentam no fim da lista,
+// por isso contamos a partir da direita.
+const ipDe = req => {
+  const n = parseInt(process.env.TRUST_PROXY, 10) || (process.env.TRUST_PROXY ? 1 : 0);
+  if (!n) return req.socket.remoteAddress;
+  const l = String(req.headers['x-forwarded-for'] || '').split(',').map(x => x.trim()).filter(Boolean);
+  return l[l.length - n] || req.socket.remoteAddress;
+};
 
 // ====== Admin só nos IPs autorizados (ADMIN_IPS=ip1,ip2) ======
 const normIp = s => String(s || '').replace(/^::ffff:/, '').trim();
