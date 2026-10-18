@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel · Rifa</title>
+<link rel="icon" href="/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:dark;--bg:#0b0b0e;--card:#15151b;--tx:#f4f1ea;--mut:#a8a4b3;--bd:#2a2a35;--pri:#ff7a00;--gold:#ffc61a;--ok:#3ddc84;--warn:#ffc61a;--err:#ff6b6b;--grad:linear-gradient(135deg,#ffc61a,#ff7a00 60%,#ff4d00)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+  .hide{display:none!important}
+  h1{font:400 2rem "Bebas Neue",Impact,sans-serif;font-style:italic;margin:0;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  header{border-bottom:2px solid transparent;border-image:var(--grad) 1;background:#000}
+  header .wrap{display:flex;align-items:center;gap:12px;height:62px}
+  header img{width:40px;height:40px;border-radius:50%;box-shadow:0 0 0 2px var(--pri)}
+  header .sp{flex:1}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;background:var(--grad);color:#1a0f00;text-decoration:none;display:inline-block}
+  .btn:hover{filter:brightness(1.1)}
+  .btn.sec{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+  .btn.sec:hover{border-color:var(--pri);filter:none}
+  .btn.sm{padding:6px 11px;font-size:.85rem;border-radius:8px}
+
+  /* login */
+  #login{max-width:360px;margin:80px auto;padding:0 16px;text-align:center}
+  #login .box{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;margin-top:16px}
+  #login img{width:84px;height:84px;border-radius:50%;box-shadow:0 0 0 3px var(--pri)}
+  input,select{padding:11px 12px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:var(--bg);color:var(--tx)}
+  #login input{width:100%;margin-bottom:12px}
+  .mask{-webkit-text-security:disc;text-security:disc}
+  .err{color:var(--err);margin:0 0 10px}
+
+  /* cards de resumo */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:22px 0}
+  .stat{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px 16px}
+  .stat small{color:var(--mut);display:block}
+  .stat b{font-size:1.6rem;display:block;line-height:1.2}
+  .stat.hl b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .prog{height:8px;background:#23232d;border-radius:9px;overflow:hidden;margin-top:8px}
+  .prog i{display:block;height:100%;background:var(--grad);width:0;transition:width .5s}
+
+  /* filtros */
+  .tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .tools input{flex:1;min-width:200px}
+
+  /* tabela */
+  .tw{background:var(--card);border:1px solid var(--bd);border-radius:14px;overflow:auto}
+  table{width:100%;border-collapse:collapse;min-width:860px}
+  th{position:sticky;top:0;text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);background:#101016;padding:12px 14px;white-space:nowrap}
+  td{padding:12px 14px;border-top:1px solid var(--bd);vertical-align:top}
+  tr:hover td{background:#191921}
+  td small{display:block;color:var(--mut)}
+  .num{white-space:nowrap;text-align:center}
+  .nums{display:flex;flex-wrap:wrap;gap:4px;max-width:260px}
+  .nums span{background:#23232d;border:1px solid var(--bd);border-radius:6px;padding:0 7px;font-weight:700;font-size:.85rem}
+  .code{font:700 .95rem ui-monospace,Consolas,monospace;color:var(--gold);white-space:nowrap}
+  .tag{display:inline-block;border-radius:99px;padding:2px 10px;font-size:.8rem;font-weight:700}
+  .tag.pago{background:rgba(61,220,132,.15);color:var(--ok)}
+  .tag.pendente{background:rgba(255,198,26,.15);color:var(--warn)}
+  .tag.expirado{background:#23232d;color:var(--mut)}
+  .tag.reembolsado{background:rgba(139,61,255,.18);color:#c4a1ff}
+  .tag.cancelado{background:#23232d;color:var(--mut);text-decoration:line-through}
+  .tag.conflito{background:rgba(255,107,107,.15);color:var(--err)}
+  dialog{border:0;border-radius:16px;padding:0;width:min(440px,94vw);background:var(--card);color:var(--tx);box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  dialog::backdrop{background:rgba(0,0,0,.7)}
+  .dh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--bd);font-weight:800}
+  .dh button{border:0;background:none;color:var(--mut);font-size:1.5rem;cursor:pointer;line-height:1}
+  .db{padding:18px}.db label{display:block;color:var(--mut);font-size:.85rem;margin:10px 0 4px}.db input{width:100%}
+  .big{font:400 5rem/1 "Bebas Neue",Impact,sans-serif;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;margin:6px 0}
+  .perigo{margin:26px 0 8px;border:1px solid rgba(255,107,107,.45);border-radius:14px;padding:16px 18px;background:rgba(255,107,107,.05)}
+  .perigo h3{margin:0 0 4px;color:var(--err);font-size:1rem}
+  .perigo p{margin:0 0 12px;color:var(--mut);font-size:.92rem}
+  .btn.red{background:var(--err);color:#1a0000}
+  .res{margin-top:12px;font-size:.92rem;text-align:left;max-height:220px;overflow:auto}
+  .res li{margin:2px 0}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .hist{margin-top:14px;border-top:1px solid var(--bd);padding-top:10px;color:var(--mut);font-size:.85rem}
+  .empty{padding:36px;text-align:center;color:var(--mut)}
+  .foot{color:var(--mut);font-size:.85rem;margin:12px 0 40px}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login">
+  <img src="/img/logo.png" alt="">
+  <div class="box">
+    <h1>Painel da Rifa</h1>
+    <p style="color:var(--mut);margin:6px 0 16px">Digite a senha de administrador.</p>
+    <input id="senha" type="text" class="mask" placeholder="Senha" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label style="display:flex;gap:8px;align-items:center;color:var(--mut);font-size:.9rem;margin:-4px 0 12px;cursor:pointer"><input type="checkbox" id="ver" style="width:auto;margin:0"> Mostrar senha</label>
+    <p class="err hide" id="loginErr">Senha incorreta.</p>
+    <button class="btn" id="entrar" style="width:100%">Entrar</button>
+  </div>
+</div>
+
+<!-- Painel -->
+<div id="painel" class="hide">
+  <header><div class="wrap">
+    <img src="/img/logo.png" alt=""><h1 id="tit">Painel</h1><span class="sp"></span>
+    <a class="btn sec sm" href="/" target="_blank">Ver site</a>
+    <button class="btn sec sm" id="sair">Sair</button>
+  </div></header>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat hl"><small>Arrecadado</small><b id="sArrec">R$ 0,00</b></div>
+      <div class="stat"><small>Números vendidos</small><b id="sVend">0 / 0</b><div class="prog"><i id="sBar"></i></div></div>
+      <div class="stat"><small>Compradores (pagos)</small><b id="sComp">0</b></div>
+      <div class="stat"><small>Aguardando pagamento</small><b id="sPend">0</b></div>
+    </div>
+
+    <div class="tools">
+      <input id="busca" type="search" placeholder="Buscar por nome, WhatsApp, número ou código">
+      <select id="filtro">
+        <option value="todos">Todos os status</option>
+        <option value="pago" selected>Pagos</option>
+        <option value="pendente">Pendentes</option>
+        <option value="expirado">Expirados</option>
+        <option value="conflito">Conflito</option>
+        <option value="cancelado">Cancelados</option>
+        <option value="reembolsado">Reembolsados</option>
+      </select>
+      <button class="btn sec" id="csv">Baixar planilha (CSV)</button>
+      <button class="btn sec" id="nova">+ Venda manual</button>
+      <button class="btn sec" id="celular">📱 Autorizar celular</button>
+      <button class="btn" id="sort">🎲 Sortear</button>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th>Comprador</th><th>WhatsApp</th><th class="num">Qtd</th><th>Números</th><th>Código</th><th>Valor</th><th>Status</th><th>Data</th><th></th>
+        </tr></thead>
+        <tbody id="t"></tbody>
+      </table>
+      <div class="empty hide" id="vazio">Nenhuma compra encontrada.</div>
+    </div>
+    <div class="perigo">
+      <h3>Zona de perigo</h3>
+      <div id="encBox"></div>
+    </div>
+    <p class="foot">Atualiza sozinho a cada 15 segundos. Números reservados ficam bloqueados enquanto o comprador tem tempo de pagar.</p>
+    <p class="foot hide" id="notaConf" style="color:var(--err)">⚠ Há pedido(s) com status <b>conflito</b>: o pagamento chegou depois do prazo e o número já tinha sido vendido a outra pessoa. Reembolse esse comprador pelo painel do Mercado Pago (ou entre em contato por WhatsApp).</p>
+  </div>
+</div>
+
+<dialog id="dVenda">
+  <div class="dh">Venda manual<button data-close aria-label="Fechar">×</button></div>
+  <div class="db">
+    <p style="margin:0;color:var(--mut)">Para quem pagou fora do site (dinheiro, PIX direto). O código é gerado na hora.</p>
+    <label>Nome</label><input id="vNome">
+    <label>WhatsApp (opcional)</label><input id="vTel" inputmode="tel" placeholder="11 99999-9999">
+    <label>Números (ex.: 5, 12, 20-25)</label><input id="vNums">
+    <p class="err hide" id="vErr"></p>
+    <button class="btn" id="vOk" style="width:100%;margin-top:14px">Registrar venda</button>
+  </div>
+</dialog>
+<dialog id="dCel">
+  <div class="dh">Autorizar celular<button data-close aria-label="Fechar">×</button></div>
+  <div class="db" style="text-align:center">
+    <p style="margin:0;color:var(--mut)">Abra a câmera do celular neste QR Code (ou abra o link nele). O link vale <b>10 minutos</b> e funciona <b>uma única vez</b>. Depois disso o celular acessa o painel de qualquer rede (a senha continua sendo pedida).</p>
+    <div id="qrCel" style="display:inline-block;background:#fff;padding:10px;border-radius:12px;margin:14px 0"></div>
+    <textarea id="linkCel" readonly style="width:100%;height:70px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:8px;font:12px monospace;resize:none"></textarea>
+    <div class="hist" style="text-align:left"><b>Dispositivos autorizados</b><div id="listaDisp" style="margin-top:6px"></div></div>
+  </div>
+</dialog>
+<dialog id="dTodos">
+  <div class="dh">Cancelar rifa e reembolsar todos<button data-close aria-label="Fechar">×</button></div>
+  <div class="db">
+    <p id="tInfo" style="margin:0 0 4px"></p>
+    <p style="margin:6px 0;color:var(--mut);font-size:.9rem">Isto <b>encerra as vendas</b>, cancela reservas em aberto e devolve o valor de <b>cada compra paga pelo Mercado Pago</b>. Os códigos deixam de valer. <b>Não dá para desfazer os reembolsos.</b></p>
+    <label>Mensagem que aparecerá no site</label>
+    <input id="tMotivo" value="A conta foi vendida. Todos os valores foram devolvidos.">
+    <label>Para confirmar, digite <b>REEMBOLSAR TODOS</b></label>
+    <input id="tConf" autocomplete="off" placeholder="REEMBOLSAR TODOS">
+    <p class="err hide" id="tErr"></p>
+    <button class="btn red" id="tGo" style="width:100%;margin-top:14px" disabled>Reembolsar todos agora</button>
+    <div class="res hide" id="tRes"></div>
+  </div>
+</dialog>
+<dialog id="dSort">
+  <div class="dh">Sorteio<button data-close aria-label="Fechar">×</button></div>
+  <div class="db" style="text-align:center">
+    <p id="sInfo" style="margin:0;color:var(--mut)"></p>
+    <div class="big" id="sNum">—</div>
+    <div id="sGan" style="font-size:1.1rem;font-weight:700;min-height:1.6em"></div>
+    <div id="sZap" style="margin-top:4px"></div>
+    <button class="btn" id="sGo" style="width:100%;margin-top:14px">Sortear agora</button>
+    <div class="hist hide" id="sHist"></div>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let senha = sessionStorage.getItem('adm') || '', pedidos = [], rifa = null, timer;
+const H = () => ({ Authorization: 'Bearer ' + senha });
+const fone = t => t.length >= 11 ? `(${t.slice(-11, -9)}) ${t.slice(-9, -4)}-${t.slice(-4)}` : t;
+
+async function carregar() {
+  const r = await fetch('/api/admin/pedidos', { headers: H() }).catch(() => null);
+  if (!r) return;
+  if (!r.ok) { sair(); $('loginErr').classList.remove('hide'); return; }
+  pedidos = await r.json();
+  if (!rifa) { rifa = await (await fetch('/api/rifa')).json(); $('tit').textContent = rifa.titulo; document.title = 'Painel · ' + rifa.titulo; }
+  $('login').classList.add('hide'); $('painel').classList.remove('hide');
+  resumo(); tabela();
+  $('notaConf').classList.toggle('hide', !pedidos.some(o => o.status === 'conflito'));
+  const pub = await (await fetch('/api/rifa')).json(); caixaEncerrar(pub.encerrada);
+}
+
+function resumo() {
+  const pagos = pedidos.filter(o => o.status === 'pago');
+  const vend = pagos.reduce((a, o) => a + o.numeros.length, 0);
+  $('sArrec').textContent = brl(pagos.reduce((a, o) => a + o.valor, 0));
+  $('sVend').textContent = `${vend} / ${rifa.total}`;
+  $('sBar').style.width = Math.min(100, vend / rifa.total * 100) + '%';
+  $('sComp').textContent = pagos.length;
+  $('sPend').textContent = pedidos.filter(o => o.status === 'pendente').length;
+}
+
+function filtrados() {
+  const f = $('filtro').value, q = $('busca').value.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+  return pedidos.filter(o => {
+    if (f !== 'todos' && o.status !== f) return false;
+    if (!q) return true;
+    return o.nome.toLowerCase().includes(q) || (o.codigo || '').toLowerCase().includes(q) ||
+      (qd && (o.telefone.includes(qd) || o.numeros.some(n => String(n) === qd || String(n).padStart(3, '0') === qd)));
+  });
+}
+
+function tabela() {
+  const w = String(rifa.total).length, lista = filtrados();
+  $('t').innerHTML = lista.map(o => `<tr>
+    <td><b>${esc(o.nome)}</b></td>
+    <td><a href="https://wa.me/55${esc(o.telefone)}" target="_blank" rel="noopener" style="color:var(--gold)">${esc(fone(o.telefone))}</a></td>
+    <td class="num"><b>${o.numeros.length}</b></td>
+    <td><div class="nums">${o.numeros.map(n => `<span>${String(n).padStart(w, '0')}</span>`).join('')}</div></td>
+    <td>${o.codigo ? `<span class="code">${esc(o.codigo)}</span> <button class="btn sec sm" data-copy="${esc(o.codigo)}">Copiar</button>` : '<span style="color:var(--mut)">—</span>'}</td>
+    <td>${brl(o.valor)}</td>
+    <td><span class="tag ${o.status}">${o.status}</span></td>
+    <td>${new Date(o.pagoEm || o.criadoEm).toLocaleDateString('pt-BR')}<small>${new Date(o.pagoEm || o.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></td>
+    <td><div class="actions">${
+      o.status === 'pago' ? `<button class="btn sec sm" data-reemb="${o.id}" data-manual="${o.mpId ? '' : '1'}">Reembolsar</button><a class="btn sec sm" target="_blank" rel="noopener" href="https://wa.me/55${esc(o.telefone)}?text=${encodeURIComponent('Olá ' + o.nome.split(' ')[0] + '! Seu código da rifa é ' + o.codigo + ' (números ' + o.numeros.map(n => String(n).padStart(w, '0')).join(', ') + ').')}">Enviar código</a>`
+      : (o.status === 'cancelado' || o.status === 'reembolsado') ? ''
+      : `<button class="btn sm" data-conf="${o.id}">Confirmar pago</button><button class="btn sec sm" data-canc="${o.id}">Cancelar</button>`}</div></td>
+  </tr>`).join('');
+  $('vazio').classList.toggle('hide', lista.length > 0);
+}
+
+$('t').onclick = async e => {
+  const c = e.target.dataset.copy, id = e.target.dataset.conf, canc = e.target.dataset.canc, reemb = e.target.dataset.reemb;
+  if (reemb) {
+    const o = pedidos.find(x => x.id === reemb), manual = e.target.dataset.manual === '1';
+    const msg = manual
+      ? `Marcar a compra de ${o.nome} (${brl(o.valor)}) como reembolsada? Ela NÃO foi paga pelo Mercado Pago: devolva o dinheiro por fora. Os números serão liberados e o código deixa de valer.`
+      : `Devolver ${brl(o.valor)} para ${o.nome} pelo Mercado Pago? Os números serão liberados e o código deixa de valer. Isso não pode ser desfeito.`;
+    if (confirm(msg)) {
+      e.target.disabled = true;
+      const r = await fetch('/api/admin/reembolsar/' + reemb, { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ manual }) });
+      const j = await r.json();
+      alert(r.ok ? 'Reembolso concluído.' : 'Não foi possível: ' + j.erro);
+      carregar();
+    }
+    return;
+  }
+  if (canc && confirm('Cancelar este pedido? Os números voltam a ficar livres.')) {
+    await fetch('/api/admin/cancelar/' + canc, { method: 'POST', headers: H() }); carregar();
+  }
+  if (c) { await navigator.clipboard.writeText(c); e.target.textContent = 'Copiado ✓'; setTimeout(() => e.target.textContent = 'Copiar', 1500); }
+  if (id && confirm('Confirmar que o PIX deste pedido caiu na conta? O código será gerado.')) {
+    await fetch('/api/admin/confirmar/' + id, { method: 'POST', headers: H() }); carregar();
+  }
+};
+$('busca').oninput = $('filtro').onchange = tabela;
+
+$('csv').onclick = () => {
+  const w = String(rifa.total).length;
+  const linhas = [['Nome', 'WhatsApp', 'Quantidade', 'Numeros', 'Codigo', 'Valor', 'Status', 'Data']]
+    .concat(filtrados().map(o => [o.nome, o.telefone, o.numeros.length, o.numeros.map(n => String(n).padStart(w, '0')).join(' '), o.codigo || '', o.valor.toFixed(2).replace('.', ','), o.status, new Date(o.pagoEm || o.criadoEm).toLocaleString('pt-BR')]));
+  const csv = '﻿' + linhas.map(l => l.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'rifa-compradores.csv'; a.click();
+};
+
+/* ---- Venda manual ---- */
+const dV = $('dVenda'), dS = $('dSort');
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
+function lerNumeros(txt) {
+  const out = new Set();
+  txt.split(/[,\s;]+/).filter(Boolean).forEach(p => {
+    const m = p.match(/^(\d+)-(\d+)$/);
+    if (m) { for (let i = +m[1]; i <= +m[2] && i <= 5000; i++) out.add(i); } else if (/^\d+$/.test(p)) out.add(+p);
+  });
+  return [...out];
+}
+$('nova').onclick = () => { ['vNome', 'vTel', 'vNums'].forEach(i => $(i).value = ''); $('vErr').classList.add('hide'); dV.showModal(); };
+$('vOk').onclick = async () => {
+  const r = await fetch('/api/admin/venda', { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome: $('vNome').value, telefone: $('vTel').value, numeros: lerNumeros($('vNums').value) }) });
+  const j = await r.json();
+  if (!r.ok) { $('vErr').textContent = j.erro; $('vErr').classList.remove('hide'); return; }
+  dV.close(); $('filtro').value = 'pago'; await carregar();
+  alert('Venda registrada! Código: ' + j.codigo);
+};
+
+/* ---- Sorteio ---- */
+async function histSorteio() {
+  const r = await fetch('/api/admin/sorteios', { headers: H() }); if (!r.ok) return;
+  const l = await r.json(), w = String(rifa.total).length;
+  $('sHist').classList.toggle('hide', !l.length);
+  $('sHist').innerHTML = '<b>Sorteios anteriores</b><br>' + l.map(x => `${new Date(x.em).toLocaleString('pt-BR')} — nº <b>${String(x.numero).padStart(w, '0')}</b> · ${esc(x.nome)}`).join('<br>');
+}
+$('sort').onclick = () => {
+  const vend = pedidos.filter(o => o.status === 'pago').reduce((a, o) => a + o.numeros.length, 0);
+  $('sInfo').textContent = vend >= rifa.total ? `Todos os ${rifa.total} números foram vendidos. Boa live!` : `Atenção: só ${vend} de ${rifa.total} números foram vendidos.`;
+  $('sNum').textContent = '—'; $('sGan').textContent = ''; $('sZap').innerHTML = '';
+  histSorteio(); dS.showModal();
+};
+$('sGo').onclick = async () => {
+  $('sGo').disabled = true; $('sGan').textContent = ''; $('sZap').innerHTML = '';
+  const r = await fetch('/api/admin/sortear', { method: 'POST', headers: H() }), j = await r.json();
+  if (!r.ok) { $('sGo').disabled = false; return alert(j.erro); }
+  const w = String(rifa.total).length;
+  for (let i = 0; i < 22; i++) { $('sNum').textContent = String(1 + Math.floor(Math.random() * rifa.total)).padStart(w, '0'); await new Promise(x => setTimeout(x, 60 + i * 9)); }
+  $('sNum').textContent = String(j.numero).padStart(w, '0');
+  $('sGan').textContent = '🏆 ' + j.nome;
+  if (j.telefone) $('sZap').innerHTML = `<a class="btn sec sm" target="_blank" rel="noopener" href="https://wa.me/55${esc(j.telefone)}">Chamar no WhatsApp</a>`;
+  $('sGo').disabled = false; $('sGo').textContent = 'Sortear novamente'; histSorteio();
+};
+
+/* ---- Encerrar rifa e reembolsar todos ---- */
+const dT = $('dTodos');
+function caixaEncerrar(enc) {
+  $('encBox').innerHTML = enc
+    ? `<p>🔒 <b>Rifa encerrada</b> em ${new Date(enc.em).toLocaleString('pt-BR')}. O site não aceita novas compras.</p>
+       <p style="margin:0 0 12px">Mensagem no site: <i>${esc(enc.motivo)}</i></p>
+       <div class="actions"><button class="btn sec" id="reabrir">Reabrir a rifa</button><button class="btn red" id="abrirTodos">Reembolsar quem faltou</button></div>`
+    : `<p>Se a conta for vendida antes do sorteio, use este botão para encerrar as vendas e devolver o dinheiro de todos de uma vez.</p>
+       <button class="btn red" id="abrirTodos">Cancelar rifa e reembolsar todos</button>`;
+}
+$('encBox').onclick = async e => {
+  if (e.target.id === 'abrirTodos') {
+    const pagos = pedidos.filter(o => o.status === 'pago' || (o.status === 'conflito' && o.mpId));
+    const mp = pagos.filter(o => o.mpId), man = pagos.length - mp.length;
+    $('tInfo').innerHTML = `<b>${pagos.length}</b> compra(s) a devolver, total <b>${brl(pagos.reduce((a, o) => a + o.valor, 0))}</b>` + (man ? `<br><span style="color:var(--warn)">${man} venda(s) manual(is) não passam pelo Mercado Pago: você terá de devolver por fora.</span>` : '');
+    $('tConf').value = ''; $('tGo').disabled = true; $('tErr').classList.add('hide'); $('tRes').classList.add('hide'); $('tGo').textContent = 'Reembolsar todos agora';
+    dT.showModal();
+  }
+  if (e.target.id === 'reabrir' && confirm('Reabrir a rifa? O site volta a aceitar compras. Reembolsos já feitos não são desfeitos.')) {
+    await fetch('/api/admin/reabrir', { method: 'POST', headers: H() }); carregar(); rifa = null;
+  }
+};
+$('tConf').oninput = () => { $('tGo').disabled = $('tConf').value.trim().toUpperCase() !== 'REEMBOLSAR TODOS'; };
+$('tGo').onclick = async () => {
+  $('tGo').disabled = true; $('tGo').textContent = 'Reembolsando…'; $('tErr').classList.add('hide');
+  const r = await fetch('/api/admin/reembolsar-todos', { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmacao: $('tConf').value, motivo: $('tMotivo').value }) });
+  const j = await r.json();
+  if (!r.ok) { $('tErr').textContent = j.erro; $('tErr').classList.remove('hide'); $('tGo').textContent = 'Reembolsar todos agora'; $('tGo').disabled = false; return; }
+  const lista = (t, arr, f) => arr.length ? `<p style="margin:8px 0 2px"><b>${t}</b></p><ul style="margin:0;padding-left:18px">${arr.map(f).join('')}</ul>` : '';
+  $('tRes').innerHTML = `<p>✅ <b>${j.reembolsados}</b> de ${j.total} reembolsada(s) · ${brl(j.valor)} devolvidos.</p>`
+    + lista('Devolver por fora (venda manual):', j.manuais, x => `<li>${esc(x.nome)} · ${esc(x.telefone || 'sem telefone')} · ${brl(x.valor)}</li>`)
+    + lista('Falharam (clique de novo para tentar outra vez):', j.falhas, x => `<li>${esc(x.nome)} · ${brl(x.valor)} · ${esc(String(x.erro))}</li>`);
+  $('tRes').classList.remove('hide'); $('tGo').textContent = j.falhas.length ? 'Tentar de novo os que falharam' : 'Concluído';
+  $('tGo').disabled = !j.falhas.length; if (j.falhas.length) $('tConf').oninput();
+  carregar();
+};
+
+/* ---- Autorizar celular ---- */
+const dC = $('dCel');
+const nomeDisp = ua => /iPhone|iPad/.test(ua) ? 'iPhone/iPad' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : 'Dispositivo';
+async function listarDisp() {
+  const r = await fetch('/api/admin/dispositivos', { headers: H() }); if (!r.ok) return;
+  const l = await r.json();
+  $('listaDisp').innerHTML = l.length ? l.map(d => `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0">
+    <span>${nomeDisp(d.nome)} · ${new Date(d.criadoEm).toLocaleDateString('pt-BR')}${d.atual ? ' <b style="color:var(--ok)">(este aparelho)</b>' : ''}</span>
+    <button class="btn sec sm" data-rev="${esc(d.id)}">Revogar</button></div>`).join('') : 'Nenhum celular autorizado ainda.';
+}
+$('celular').onclick = async () => {
+  const r = await fetch('/api/admin/parear', { method: 'POST', headers: H() }); if (!r.ok) return alert('Erro ao gerar o link.');
+  const j = await r.json();
+  $('qrCel').innerHTML = ''; new QRCode($('qrCel'), { text: j.url, width: 190, height: 190, correctLevel: QRCode.CorrectLevel.M });
+  $('linkCel').value = j.url; listarDisp(); dC.showModal();
+};
+$('listaDisp').onclick = async e => {
+  const id = e.target.dataset.rev;
+  if (id && confirm('Revogar este aparelho? Ele perde o acesso ao painel.')) { await fetch('/api/admin/dispositivos/revogar/' + id, { method: 'POST', headers: H() }); listarDisp(); }
+};
+
+function entrar() { senha = $('senha').value; sessionStorage.setItem('adm', senha); $('loginErr').classList.add('hide'); carregar(); timer = setInterval(carregar, 15000); }
+function sair() { clearInterval(timer); sessionStorage.removeItem('adm'); senha = ''; $('painel').classList.add('hide'); $('login').classList.remove('hide'); }
+$('entrar').onclick = entrar;
+$('ver').onchange = () => { $('senha').classList.toggle('mask', !$('ver').checked); $('senha').focus(); };
+$('senha').onkeydown = e => { if (e.key === 'Enter') entrar(); };
+$('sair').onclick = () => { sair(); $('loginErr').classList.add('hide'); };
+if (senha) { carregar(); timer = setInterval(carregar, 15000); }
+</script>
+</body>
+</html>

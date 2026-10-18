@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rifa Online</title>
+<meta name="description" content="Escolha seus números e pague com PIX. Seu código é gerado na hora.">
+<link rel="icon" href="/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Identidade Ahllysin: preto, laranja/amarelo (Goku) e roxo (vilão) */
+  :root{color-scheme:dark;--bg:#0b0b0e;--card:#15151b;--tx:#f4f1ea;--mut:#a8a4b3;--bd:#2a2a35;--pri:#ff7a00;--pri2:#e65c00;--gold:#ffc61a;--purple:#8b3dff;--sel:#ff7a00;--oc:#23232d;--err:#ff6b6b;--sh:0 8px 28px rgba(0,0,0,.45);--grad:linear-gradient(135deg,#ffc61a,#ff7a00 60%,#ff4d00)}
+  h1,h2,.logo span{font-family:"Bebas Neue",Impact,sans-serif;letter-spacing:.5px;font-weight:400}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+  section[id]{scroll-margin-top:72px}
+  a{color:inherit}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px}
+  .hide{display:none!important}
+
+  /* Navegação */
+  .topbar{background:#000;border-bottom:1px solid var(--bd);font-size:.88rem}
+  .topbar .wrap{display:flex;justify-content:center}
+  .topbar a{display:flex;align-items:center;gap:8px;padding:7px 0;text-decoration:none;color:var(--tx)}
+  .topbar a:hover span{color:var(--gold)}
+  .topbar b{color:var(--gold)}
+  header{position:sticky;top:0;z-index:30;background:rgba(11,11,14,.92);backdrop-filter:blur(8px);border-bottom:2px solid transparent;border-image:var(--grad) 1}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .logo{font-size:1.5rem;text-decoration:none;display:flex;gap:10px;align-items:center;font-style:italic}
+  .logo img{width:40px;height:40px;border-radius:50%;box-shadow:0 0 0 2px var(--pri)}
+  .logo span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+  nav a{display:block;padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--mut);font-weight:600;font-size:.95rem}
+  nav a:hover,nav a.on{background:var(--bg);color:var(--tx)}
+  nav a.cta{background:var(--grad);color:#1a0f00}
+  nav a.cta:hover{filter:brightness(1.1);color:#1a0f00}
+  #burger{display:none;background:none;border:1px solid var(--bd);border-radius:8px;width:40px;height:40px;font-size:1.2rem;color:var(--tx);cursor:pointer}
+  @media(max-width:720px){
+    #burger{display:block}
+    nav ul{display:none;position:absolute;left:0;right:0;top:58px;background:var(--card);border-bottom:1px solid var(--bd);flex-direction:column;padding:8px 16px 14px}
+    nav ul.open{display:flex}
+  }
+
+  /* Hero */
+  .hero{position:relative;color:#fff;padding:0 0 52px;background:var(--bg)}
+  .hero .ban{display:block;width:100%;max-height:300px;object-fit:cover;object-position:center;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+  .hero .ban{min-height:150px}
+  .hero .wrap{margin-top:-6px;position:relative}
+  @media(max-width:720px){.logo{font-size:1.2rem}.logo img{width:34px;height:34px}}
+  .hero h1{font-size:clamp(2.6rem,8vw,4.4rem);line-height:1;margin:0 0 8px;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 30px rgba(255,122,0,.25)}
+  .hero p{margin:0 0 6px;max-width:560px;color:var(--tx)}
+  .badges{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .badge{background:rgba(139,61,255,.15);border:1px solid rgba(139,61,255,.5);border-radius:999px;padding:6px 14px;font-weight:600;font-size:.95rem}
+  .aviso{max-width:620px;background:rgba(255,198,26,.08);border:1px solid rgba(255,198,26,.45);border-left:4px solid var(--gold);border-radius:12px;padding:12px 14px;color:var(--tx);line-height:1.5}
+  .aviso b{color:var(--gold)}
+  .aviso.mini{font-size:.88rem;margin:14px 0 0;padding:10px 12px}
+  .prog{max-width:460px;margin:20px 0 22px}
+  .prog .bar{height:12px;background:var(--oc);border-radius:99px;overflow:hidden}
+  .prog .bar b{display:block;height:100%;background:var(--grad);border-radius:99px;width:0;transition:width .6s;box-shadow:0 0 14px rgba(255,122,0,.6)}
+  .prog small{display:block;margin-top:6px;opacity:.95}
+  .btn{display:inline-block;border:0;border-radius:12px;padding:14px 26px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;background:var(--grad);color:#1a0f00;box-shadow:0 4px 18px rgba(255,122,0,.35)}
+  .btn:hover{filter:brightness(1.08)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.white{background:var(--grad);color:#1a0f00;font-size:1.05rem}
+  .btn.sec{background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:10px 16px;box-shadow:none}
+  .btn.sec:hover{background:var(--bg);border-color:var(--pri);filter:none}
+
+  /* Seções */
+  main section{padding:44px 0}
+  h2{font-size:2.1rem;margin:0 0 6px;font-style:italic;color:var(--gold)}
+  .sub{color:var(--mut);margin:0 0 22px}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:18px;box-shadow:var(--sh)}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .step img.esf{display:block;width:56px;height:56px;margin-bottom:8px;filter:drop-shadow(0 0 10px rgba(255,122,0,.55))}
+  .step h3{margin:0 0 4px;font-size:1.05rem}.step p{margin:0;color:var(--mut);font-size:.95rem}
+
+  /* Números */
+  .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .tools input,.tools select{padding:10px 12px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:var(--bg);color:var(--tx)}
+  .tools input[type=number]{width:80px}
+  .tools .sp{flex:1}
+  .seg{display:flex;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+  .seg button{border:0;background:var(--bg);color:var(--mut);padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+  .seg button.on{background:var(--grad);color:#1a0f00}
+  .legend{display:flex;gap:16px;font-size:.85rem;color:var(--mut);margin-bottom:12px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px}
+  .n{padding:12px 0;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;font-weight:700;cursor:pointer;transition:transform .08s}
+  .n:hover:not(:disabled){border-color:var(--pri);transform:translateY(-1px)}
+  .n.sel{background:var(--grad);border-color:var(--gold);color:#1a0f00;box-shadow:0 0 14px rgba(255,122,0,.5)}
+  .n:disabled{background:var(--oc);color:var(--mut);cursor:not-allowed;text-decoration:line-through;opacity:.7}
+  .empty{color:var(--mut);padding:18px 0;text-align:center}
+  .pend{background:#2d2108;border:1px solid #8a6d12;color:#fde68a;border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+
+  /* Barra fixa de seleção */
+  #sbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--bd);box-shadow:0 -6px 24px rgba(0,0,0,.6);padding:12px 0}
+  #sbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  #sbar .btn{padding:12px 22px;white-space:nowrap}
+  #sbar .wrap>span:last-child{display:flex;gap:6px;flex-shrink:0}
+  @media(max-width:480px){#sbar .btn{padding:10px 14px}#sbar .btn.sec{padding:10px 12px}}
+  body.has-bar{padding-bottom:78px}
+
+  /* FAQ */
+  /* A conta: vídeo e galeria */
+  .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .gal button{position:relative;border:1px solid var(--bd);border-radius:12px;overflow:hidden;padding:0;background:var(--card);cursor:zoom-in}
+  .gal button:hover{border-color:var(--pri)}
+  .gal img{display:block;width:100%;aspect-ratio:1280/576;object-fit:cover;transition:transform .25s}
+  .gal button:hover img{transform:scale(1.05)}
+  .gal span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 6px;font-size:.82rem;font-weight:700;text-align:left;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+  #lb{width:min(1100px,96vw);background:#000}
+  #lb img{display:block;width:100%;max-height:78vh;object-fit:contain}
+  #lb .lbBar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px}
+  #lb .lbBar b{flex:1;text-align:center}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:-8px 0 16px}
+  .stat{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--pri);border-radius:12px;padding:10px 16px}
+  .stat small{display:block;color:var(--mut);font-size:.8rem}
+  .stat b{font:400 1.6rem/1.1 "Bebas Neue",Impact,sans-serif;letter-spacing:.5px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .heroBtns{display:flex;gap:10px;flex-wrap:wrap}
+  .btn.ghost{background:transparent;color:var(--tx);border:1px solid var(--gold);box-shadow:none}
+  .btn.ghost:hover{background:rgba(255,198,26,.1);filter:none}
+  details{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:700}
+  details p{margin:10px 0 0;color:var(--mut)}
+
+  /* Consulta */
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row input{flex:1;min-width:200px;padding:12px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:var(--bg);color:var(--tx);text-transform:uppercase}
+
+  footer{border-top:1px solid var(--bd);padding:26px 0 30px;color:var(--mut);font-size:.9rem;text-align:center}
+
+  /* Janela de compra */
+  dialog{border:0;border-radius:18px;padding:0;width:min(480px,94vw);max-height:92vh;background:var(--card);color:var(--tx);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  dialog::backdrop{background:rgba(10,16,30,.6)}
+  .dh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--bd)}
+  .dh b{font-size:1.05rem}
+  .dh button{border:0;background:none;font-size:1.5rem;line-height:1;cursor:pointer;color:var(--mut)}
+  .db{padding:18px;overflow:auto;max-height:calc(92vh - 60px)}
+  label{display:block;font-size:.9rem;margin:12px 0 4px;color:var(--mut)}
+  .db input{width:100%;padding:12px;border:1px solid var(--bd);border-radius:10px;font:inherit;background:var(--bg);color:var(--tx)}
+  .resumo{background:var(--bg);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chips span{background:var(--grad);color:#1a0f00;border-radius:8px;padding:2px 9px;font-weight:700;font-size:.9rem}
+  .center{text-align:center}
+  #qr{display:inline-block;padding:10px;background:#fff;border-radius:12px;margin:8px 0}
+  textarea{width:100%;height:80px;padding:10px;border:1px solid var(--bd);border-radius:10px;font:12px monospace;background:var(--bg);color:var(--tx);resize:none}
+  .code{font:800 1.9rem ui-monospace,Consolas,monospace;letter-spacing:1px;color:var(--gold);margin:8px 0;word-break:break-all;text-shadow:0 0 18px rgba(255,198,26,.4)}
+  .err{color:var(--err);margin-top:8px;font-size:.95rem}
+  .mut{color:var(--mut);font-size:.9rem}
+  .full{width:100%;margin-top:14px}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="wrap">
+  <a href="https://www.youtube.com/channel/UC9615XT2cQXwyT5R8EYvNRg?sub_confirmation=1" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="1" y="4.5" width="22" height="15" rx="4.5" fill="#ff0000"/><path d="M10 8.9v6.2l5.4-3.1z" fill="#fff"/></svg>
+    <span>Inscreva-se no canal <b>Ahllysin</b> no YouTube</span>
+  </a>
+</div></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#inicio"><img src="/img/logo.png" alt="Ahllysin"><span id="logoTxt">Rifa</span></a>
+    <button id="burger" aria-label="Abrir menu">☰</button>
+    <nav>
+      <ul id="menu">
+        <li><a href="#inicio" data-s="inicio">Início</a></li>
+        <li><a href="#conta" data-s="conta">A conta</a></li>
+        <li><a href="#como" data-s="como">Como funciona</a></li>
+        <li><a href="#numeros" data-s="numeros">Números</a></li>
+        <li><a href="#consulta" data-s="consulta">Meu código</a></li>
+        <li><a href="#duvidas" data-s="duvidas">Dúvidas</a></li>
+        <li><a class="cta" href="#numeros">Participar</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section id="inicio" class="hero">
+  <img class="ban" src="/img/banner.jpg" alt="Ahllysin">
+  <div class="wrap">
+    <h1 id="titulo">Rifa</h1>
+    <p id="premio" style="font-size:1.25rem;font-weight:700"></p>
+    <p id="descricao"></p>
+    <div class="badges">
+      <span class="badge" id="bPreco"></span>
+      <span class="badge hide" id="bData"></span>
+      <span class="badge">Pagamento via PIX</span>
+    </div>
+    <div class="aviso hide" id="aviso"></div>
+    <div class="prog">
+      <div class="bar"><b id="progBar"></b></div>
+      <small id="progTxt"></small>
+    </div>
+    <div class="heroBtns"><a class="btn white" href="#numeros">Escolher meus números</a><a class="btn ghost" href="#conta">Ver a conta</a></div>
+  </div>
+</section>
+
+<main>
+  <section id="conta"><div class="wrap">
+    <h2>Conheça a conta</h2><p class="sub">Veja tudo o que vem no prêmio. Toque nas imagens para ampliar.</p>
+    <div class="stats"><div class="stat"><small>Poder total</small><b>PC 1.393.875</b></div><div class="stat"><small>Nível</small><b>72</b></div><div class="stat"><small>Servidor 6</small><b>Top 2 global</b></div></div>
+    <div class="gal" id="gal"></div>
+  </div></section>
+
+  <section id="como"><div class="wrap">
+    <h2>Como funciona</h2><p class="sub">Leva menos de 2 minutos.</p>
+    <div class="steps">
+      <div class="card step"><img class="esf" src="/img/esfera1.png" alt="Passo 1"><h3>Escolha os números</h3><p>Toque nos números livres ou peça para o site escolher por você.</p></div>
+      <div class="card step"><img class="esf" src="/img/esfera2.png" alt="Passo 2"><h3>Pague com PIX</h3><p>Escaneie o QR Code ou use o PIX copia e cola no app do seu banco.</p></div>
+      <div class="card step"><img class="esf" src="/img/esfera3.png" alt="Passo 3"><h3>Receba seu código</h3><p>Assim que o pagamento é confirmado, seu código aparece na tela.</p></div>
+    </div>
+  </div></section>
+
+  <section id="numeros" style="padding-top:8px"><div class="wrap">
+    <h2>Escolha seus números</h2><p class="sub">Você pode comprar até 20 números por vez.</p>
+    <div class="pend hide" id="pend"><span>Você tem um pagamento em andamento.</span><button class="btn sec" id="retomar">Ver meu PIX</button></div>
+    <div class="card">
+      <div class="tools">
+        <input id="busca" type="search" inputmode="numeric" placeholder="Buscar número" aria-label="Buscar número" style="width:150px">
+        <div class="seg" id="seg"><button data-f="todos" class="on">Todos</button><button data-f="livres">Livres</button></div>
+        <span class="sp"></span>
+        <input id="qtd" type="number" min="1" max="20" value="5" aria-label="Quantidade">
+        <button class="btn sec" id="rand">🎲 Escolher para mim</button>
+      </div>
+      <div class="legend"><span><i style="background:var(--card);border:1px solid var(--bd)"></i>Livre</span><span><i style="background:var(--sel)"></i>Selecionado</span><span><i style="background:var(--oc)"></i>Indisponível</span></div>
+      <div class="grid" id="grid"></div>
+      <div class="empty hide" id="vazio">Nenhum número encontrado.</div>
+    </div>
+  </div></section>
+
+  <section id="consulta"><div class="wrap">
+    <h2>Consultar meu código</h2><p class="sub">Já pagou? Digite o código para ver seus números.</p>
+    <div class="card">
+      <div class="row"><input id="cons" placeholder="RIFA-XXXX-XXXX" aria-label="Código"><button class="btn" id="btnCons">Consultar</button></div>
+      <p id="consRes" style="margin:12px 0 0"></p>
+    </div>
+  </div></section>
+
+  <section id="duvidas"><div class="wrap">
+    <h2>Dúvidas frequentes</h2><p class="sub">&nbsp;</p>
+    <details><summary>Como recebo meu código?</summary><p>Logo após o PIX ser confirmado, o código aparece na tela. Guarde-o: ele comprova a sua participação. Você pode consultá-lo depois em "Meu código".</p></details>
+    <details><summary>Onde estão as regras completas?</summary><p>No <a href="/regulamento" style="color:var(--gold)">regulamento da rifa</a>: quem pode participar, pagamento, sorteio, entrega do prêmio e reembolso.</p></details>
+    <details class="hide" id="faqVenda"><summary>A conta também está à venda?</summary><p id="faqVendaTxt"></p></details>
+    <details><summary>Perdi meu código. Como recupero?</summary><p>Fale com o organizador pelo WhatsApp (botão no rodapé do site) ou pelas redes do canal, informando o <b>nome e o WhatsApp usados na compra</b>. Ele localiza o seu pedido e envia o código novamente.</p></details>
+    <details><summary>Quanto tempo tenho para pagar?</summary><p>Seus números ficam reservados por <span id="faqMin">15</span> minutos. Depois disso eles voltam a ficar livres para outras pessoas.</p></details>
+    <details><summary>Paguei e o código não apareceu. E agora?</summary><p>A confirmação do PIX costuma levar poucos segundos. Se passar de alguns minutos, fale com o organizador pelo WhatsApp informando seu nome e os números escolhidos.</p></details>
+    <details><summary>Quando e como sai o resultado?</summary><p id="faqSorteio">O sorteio será realizado em <b>live</b> no canal do Ahllysin, assim que <b>todos os números forem comprados</b>. Fique de olho no canal e nas redes para saber o dia e o horário.</p></details>
+    <details><summary>É seguro?</summary><p>O pagamento é feito direto pelo PIX no app do seu banco. O site nunca pede senha nem dados do seu cartão.</p></details>
+  </div></section>
+</main>
+
+<footer><div class="wrap">
+  <div id="fZap" class="hide" style="margin-bottom:8px"><a class="btn sec" id="zapLink" target="_blank" rel="noopener">Falar com o organizador no WhatsApp</a></div>
+  <div style="margin-bottom:8px"><a class="btn sec" href="https://www.youtube.com/channel/UC9615XT2cQXwyT5R8EYvNRg?sub_confirmation=1" target="_blank" rel="noopener">▶ Canal no YouTube</a></div>
+  <div style="margin-bottom:8px"><a href="/regulamento" style="color:var(--gold)">Regulamento da rifa</a></div>
+  <div id="fTit"></div>
+</div></footer>
+
+<div id="sbar" class="hide"><div class="wrap">
+  <span id="tot"></span>
+  <span><button class="btn sec" id="limpar">Limpar</button><button class="btn" id="seguir">Continuar</button></span>
+</div></div>
+
+<dialog id="lb">
+  <img id="lbImg" alt="">
+  <div class="lbBar">
+    <button class="btn sec" id="lbAnt" aria-label="Anterior">‹</button>
+    <b id="lbTxt"></b>
+    <button class="btn sec" id="lbProx" aria-label="Próxima">›</button>
+    <button class="btn sec" id="lbFechar" aria-label="Fechar">×</button>
+  </div>
+</dialog>
+
+<dialog id="dlg">
+  <div class="dh"><b id="dTitulo">Seus dados</b><button id="fechar" aria-label="Fechar">×</button></div>
+  <div class="db">
+    <!-- Dados -->
+    <div id="e1">
+      <div class="resumo"><div><b id="rN"></b><div class="chips" id="rChips"></div></div><b id="rV"></b></div>
+      <label for="nome">Nome completo</label><input id="nome" autocomplete="name">
+      <label for="tel">WhatsApp (com DDD)</label><input id="tel" inputmode="tel" autocomplete="tel" placeholder="11 99999-9999">
+      <p class="aviso mini hide" id="avisoCompra"></p>
+      <p class="mut center" style="margin:12px 0 0">Ao gerar o PIX você concorda com o <a href="/regulamento" target="_blank" style="color:var(--gold)">regulamento</a>.</p>
+      <div class="err" id="erro"></div>
+      <button class="btn full" id="pagar">Gerar PIX</button>
+      <p class="mut center" style="margin-bottom:0">Você será direcionado ao pagamento sem sair do site.</p>
+    </div>
+    <!-- PIX -->
+    <div id="e2" class="hide center">
+      <p class="mut" id="resumo2" style="margin:0"></p>
+      <div id="qr"></div>
+      <p class="mut" style="margin:4px 0">Ou use o PIX copia e cola:</p>
+      <textarea id="pix" readonly></textarea>
+      <button class="btn full" id="copiar" style="margin-top:8px">Copiar código PIX</button>
+      <p class="mut" id="status" style="margin-bottom:2px">⏳ Aguardando pagamento…</p>
+      <p class="mut" id="timer" style="margin:0"></p>
+    </div>
+    <!-- Código -->
+    <div id="e3" class="hide center">
+      <div style="font-size:2.6rem">✅</div>
+      <b>Pagamento confirmado!</b>
+      <p class="mut" style="margin:6px 0 0">Seu código da rifa:</p>
+      <div class="code" id="codigo"></div>
+      <p id="nums" style="margin:0 0 10px"></p>
+      <button class="btn sec" id="copcod">Copiar código</button>
+      <p class="mut">Guarde este código. Ele comprova a sua participação.</p>
+      <button class="btn full" id="ok">Fechar</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const dlg = $('dlg');
+let rifa, sel = new Set(), filtro = 'todos', busca = '', pedido = null, poll, tick;
+
+/* ---------- Dados da rifa ---------- */
+async function carregar() {
+  rifa = await (await fetch('/api/rifa')).json();
+  document.title = rifa.titulo;
+  $('titulo').textContent = $('logoTxt').textContent = $('fTit').textContent = rifa.titulo;
+  $('premio').textContent = rifa.premio;
+  $('descricao').textContent = rifa.descricao || '';
+  $('descricao').classList.toggle('hide', !rifa.descricao);
+  $('bPreco').textContent = `${brl(rifa.preco)} por número`;
+  if (rifa.dataSorteio) { $('bData').textContent = '🗓 Sorteio: ' + rifa.dataSorteio; $('bData').classList.remove('hide'); }
+  if (rifa.whatsapp) { $('zapLink').href = 'https://wa.me/' + rifa.whatsapp; $('fZap').classList.remove('hide'); }
+  $('faqMin').textContent = rifa.reservaMin;
+  if (rifa.vendaDireta > 0) {
+    const v = brl(rifa.vendaDireta);
+    $('aviso').innerHTML = `<b>⚠ Atenção:</b> a conta também está <b>à venda por ${v}</b>. Se ela for vendida antes do sorteio, a rifa é cancelada e <b>todos que compraram recebem o dinheiro de volta</b>.`;
+    $('faqVendaTxt').innerHTML = `Sim. A conta também está à venda por <b>${v}</b>. Se alguém comprar a conta antes do sorteio, a rifa é cancelada e <b>todo mundo que comprou números recebe o valor pago de volta</b>, pelo mesmo PIX usado na compra.`;
+    $('avisoCompra').innerHTML = `A conta também está à venda por <b>${v}</b>. Se for vendida antes do sorteio, a rifa é cancelada e você recebe seu dinheiro de volta.`;
+  }
+  ['aviso', 'faqVenda', 'avisoCompra'].forEach(id => $(id).classList.toggle('hide', !(rifa.vendaDireta > 0)));
+  if (rifa.encerrada) {   // rifa cancelada: nada de compras
+    $('aviso').innerHTML = `<b>🔒 Rifa encerrada.</b> ${rifa.encerrada.motivo.replace(/[<>&]/g, '')}`;
+    $('aviso').classList.remove('hide');
+    $('rand').disabled = true; sel.clear();
+  }
+  const pct = Math.round(rifa.vendidos / rifa.total * 100);
+  $('progBar').style.width = pct + '%';
+  const livres = rifa.total - rifa.ocupados.length;
+  $('progTxt').textContent = `${rifa.vendidos} de ${rifa.total} números vendidos · ${livres} disponíveis`;
+  // tira da seleção quem foi comprado por outra pessoa
+  const oc = new Set(rifa.ocupados);
+  [...sel].forEach(n => oc.has(n) && sel.delete(n));
+  desenhar();
+}
+
+/* ---------- Grade de números ---------- */
+function desenhar() {
+  const oc = new Set(rifa.ocupados), w = String(rifa.total).length;
+  const g = $('grid'); g.innerHTML = '';
+  let qtd = 0;
+  for (let i = 1; i <= rifa.total; i++) {
+    const txt = String(i).padStart(w, '0');
+    if (filtro === 'livres' && oc.has(i)) continue;
+    if (busca && !txt.includes(busca) && !String(i).includes(busca)) continue;
+    const b = document.createElement('button');
+    b.className = 'n' + (sel.has(i) ? ' sel' : '');
+    b.textContent = txt; b.disabled = oc.has(i) || !!rifa.encerrada;
+    b.setAttribute('aria-pressed', sel.has(i));
+    b.onclick = () => { sel.has(i) ? sel.delete(i) : (sel.size < 20 ? sel.add(i) : alert('Máximo de 20 números por compra.')); desenhar(); };
+    g.appendChild(b); qtd++;
+  }
+  $('vazio').classList.toggle('hide', qtd > 0);
+  const n = sel.size;
+  $('sbar').classList.toggle('hide', !n);
+  document.body.classList.toggle('has-bar', n > 0);
+  $('tot').innerHTML = `<b>${n}</b> número(s) · <b>${brl(n * rifa.preco)}</b>`;
+}
+$('busca').oninput = e => { busca = e.target.value.replace(/\D/g, ''); desenhar(); };
+$('seg').onclick = e => {
+  const f = e.target.dataset.f; if (!f) return;
+  filtro = f; [...$('seg').children].forEach(b => b.classList.toggle('on', b === e.target)); desenhar();
+};
+$('rand').onclick = () => {
+  const oc = new Set(rifa.ocupados);
+  const livres = []; for (let i = 1; i <= rifa.total; i++) if (!oc.has(i) && !sel.has(i)) livres.push(i);
+  let q = Math.max(1, Math.min(20 - sel.size, +$('qtd').value || 1, livres.length));
+  if (!livres.length) return alert('Não há números livres.');
+  for (let k = 0; k < q; k++) sel.add(livres.splice(Math.floor(Math.random() * livres.length), 1)[0]);
+  desenhar();
+};
+$('limpar').onclick = () => { sel.clear(); desenhar(); };
+
+/* ---------- Janela de compra ---------- */
+function etapa(n) {
+  ['e1', 'e2', 'e3'].forEach((id, i) => $(id).classList.toggle('hide', i + 1 !== n));
+  $('dTitulo').textContent = ['Seus dados', 'Pague com PIX', 'Tudo certo!'][n - 1];
+}
+function abrir() { if (!dlg.open) dlg.showModal(); }
+$('fechar').onclick = $('ok').onclick = () => dlg.close();
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener('close', () => $('pend').classList.toggle('hide', !(pedido && pedido.status === 'pendente')));
+
+$('seguir').onclick = () => {
+  const lista = [...sel].sort((a, b) => a - b), w = String(rifa.total).length;
+  $('rN').textContent = `${lista.length} número(s)`;
+  $('rChips').innerHTML = ''; lista.forEach(n => { const s = document.createElement('span'); s.textContent = String(n).padStart(w, '0'); $('rChips').appendChild(s); });
+  $('rV').textContent = brl(lista.length * rifa.preco);
+  $('erro').textContent = ''; etapa(1); abrir();
+};
+
+$('pagar').onclick = async () => {
+  $('erro').textContent = ''; $('pagar').disabled = true;
+  try {
+    const r = await fetch('/api/reservar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: $('nome').value, telefone: $('tel').value, numeros: [...sel] }),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      $('erro').textContent = j.erro;
+      if (j.ocupados) { j.ocupados.forEach(n => sel.delete(n)); await carregar(); if (!sel.size) dlg.close(); }
+      return;
+    }
+    localStorage.setItem('pedido', j.id);
+    sel.clear(); desenhar();
+    mostrarPedido(j);
+  } catch { $('erro').textContent = 'Sem conexão. Tente novamente.'; }
+  finally { $('pagar').disabled = false; }
+};
+
+function mostrarPedido(o) {
+  clearInterval(poll); clearInterval(tick);
+  pedido = o;
+  if (o.status === 'pago') return mostrarCodigo(o);
+  if (o.status === 'expirado' || o.status === 'conflito' || o.status === 'cancelado') {
+    localStorage.removeItem('pedido'); pedido = null; $('pend').classList.add('hide');
+    alert(o.status === 'conflito'
+      ? 'Seu pagamento chegou depois do prazo e o número já foi vendido. Entre em contato com o organizador para o reembolso.'
+      : 'A reserva expirou. Escolha os números novamente.');
+    dlg.close(); return carregar();
+  }
+  etapa(2); abrir();
+  $('resumo2').textContent = `Números ${o.numeros.join(', ')} · ${brl(o.valor)}`;
+  $('pix').value = o.pix; $('qr').innerHTML = '';
+  new QRCode($('qr'), { text: o.pix, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+  $('copiar').textContent = 'Copiar código PIX';
+  $('copiar').onclick = async () => { await navigator.clipboard.writeText(o.pix); $('copiar').textContent = 'Copiado ✓'; };
+  tick = setInterval(() => {
+    const s = Math.max(0, Math.round((o.expiraEm - Date.now()) / 1000));
+    $('timer').textContent = s > 0 ? `Reserva expira em ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : 'Tempo esgotado. Se você já pagou, aguarde a confirmação…';
+  }, 500);
+  poll = setInterval(async () => {
+    const r = await fetch('/api/pedido/' + o.id).catch(() => null);
+    if (!r || !r.ok) return;
+    const n = await r.json();
+    if (n.status !== 'pendente') mostrarPedido(n);
+  }, 4000);
+}
+function mostrarCodigo(o) {
+  etapa(3); abrir(); $('pend').classList.add('hide');
+  $('codigo').textContent = o.codigo;
+  $('nums').textContent = `Números: ${o.numeros.join(', ')}`;
+  $('copcod').onclick = () => navigator.clipboard.writeText(o.codigo);
+  localStorage.removeItem('pedido'); pedido = null;
+  carregar();
+}
+$('retomar').onclick = () => pedido && mostrarPedido(pedido);
+
+/* ---------- Consulta ---------- */
+$('btnCons').onclick = async () => {
+  const r = await fetch('/api/consulta?codigo=' + encodeURIComponent($('cons').value));
+  const j = await r.json();
+  $('consRes').textContent = r.ok ? `✅ ${j.nome} — números ${j.numeros.join(', ')}` : '❌ ' + j.erro;
+};
+$('cons').onkeydown = e => { if (e.key === 'Enter') $('btnCons').click(); };
+
+/* ---------- Galeria da conta ---------- */
+const FOTOS = [
+  'Tela inicial · PC 1.393.875', 'Cooler Dourado UR', 'Broly UR', 'Cumber UR', 'Goku Black (Rosé) UR', 'Kale UR',
+  'Lista de guerreiros', 'Arena', 'VIP 12', 'Bolsa de itens', 'Equipamentos de combate', 'Assistência · Shenlong',
+  'Supremo · Cumber', 'Supremo · Cooler Dourado', 'Afeição', 'Revide de atributos',
+].map((t, i) => [String(i + 1).padStart(2, '0'), t]);
+let lbI = 0;
+FOTOS.forEach(([f, t], i) => {
+  const b = document.createElement('button');
+  b.innerHTML = `<img src="/img/conta/${f}-p.jpg" alt="${t}" loading="lazy"><span>${t}</span>`;
+  b.onclick = () => abrirFoto(i);
+  $('gal').appendChild(b);
+});
+function abrirFoto(i) {
+  lbI = (i + FOTOS.length) % FOTOS.length;
+  $('lbImg').src = `/img/conta/${FOTOS[lbI][0]}.jpg`; $('lbImg').alt = $('lbTxt').textContent = FOTOS[lbI][1];
+  if (!$('lb').open) $('lb').showModal();
+}
+$('lbAnt').onclick = () => abrirFoto(lbI - 1);
+$('lbProx').onclick = () => abrirFoto(lbI + 1);
+$('lbFechar').onclick = () => $('lb').close();
+$('lb').addEventListener('click', e => { if (e.target === $('lb')) $('lb').close(); });
+$('lb').addEventListener('keydown', e => { if (e.key === 'ArrowLeft') abrirFoto(lbI - 1); if (e.key === 'ArrowRight') abrirFoto(lbI + 1); });
+
+/* ---------- Menu ---------- */
+$('burger').onclick = () => $('menu').classList.toggle('open');
+$('menu').onclick = e => e.target.tagName === 'A' && $('menu').classList.remove('open');
+const links = [...document.querySelectorAll('nav a[data-s]')];
+const spy = new IntersectionObserver(es => es.forEach(e => e.isIntersecting &&
+  links.forEach(a => a.classList.toggle('on', a.dataset.s === e.target.id))), { rootMargin: '-45% 0px -50% 0px' });
+links.forEach(a => spy.observe($(a.dataset.s)));
+
+/* ---------- Início ---------- */
+(async () => {
+  await carregar();
+  setInterval(() => !dlg.open && carregar().catch(() => {}), 20000);
+  const id = localStorage.getItem('pedido'); // retoma pedido se a página for recarregada
+  if (id) {
+    const r = await fetch('/api/pedido/' + id).catch(() => null);
+    if (r && r.ok) { pedido = await r.json(); if (pedido.status === 'pendente') $('pend').classList.remove('hide'); else mostrarPedido(pedido); }
+    else localStorage.removeItem('pedido');
+  }
+})();
+</script>
+</body>
+</html>
