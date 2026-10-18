@@ -477,7 +477,7 @@ const servidor = http.createServer(async (req, res) => {
       return json(res, 200, (db.sorteios || []).slice().reverse());
     }
     // ---- Arquivos estáticos ----
-    let f = p === '/' ? '/index.html' : p === '/admin' ? '/admin.html' : p;
+    let f = p === '/' ? '/index.html' : p === '/admin' ? '/admin.html' : p === '/regulamento' ? '/regulamento.html' : p;
     const full = path.normalize(path.join(PUBLIC, f));
     if (!full.startsWith(PUBLIC) || !fs.existsSync(full) || fs.statSync(full).isDirectory()) {
       res.writeHead(404); return res.end('Não encontrado');
