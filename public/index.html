@@ -105,8 +105,6 @@
 
   /* FAQ */
   /* A conta: vídeo e galeria */
-  .video{padding:0;overflow:hidden;margin-bottom:16px;border-color:rgba(255,122,0,.4)}
-  .video video{display:block;width:100%;aspect-ratio:1280/576;background:#000}
   .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
   .gal button{position:relative;border:1px solid var(--bd);border-radius:12px;overflow:hidden;padding:0;background:var(--card);cursor:zoom-in}
   .gal button:hover{border-color:var(--pri)}
@@ -198,20 +196,14 @@
       <div class="bar"><b id="progBar"></b></div>
       <small id="progTxt"></small>
     </div>
-    <div class="heroBtns"><a class="btn white" href="#numeros">Escolher meus números</a><a class="btn ghost" href="#conta">▶ Ver a conta</a></div>
+    <div class="heroBtns"><a class="btn white" href="#numeros">Escolher meus números</a><a class="btn ghost" href="#conta">Ver a conta</a></div>
   </div>
 </section>
 
 <main>
   <section id="conta"><div class="wrap">
     <h2>Conheça a conta</h2><p class="sub">Veja tudo o que vem no prêmio. Toque nas imagens para ampliar.</p>
-    <div class="stats"><div class="stat"><small>Poder total</small><b>PC 1.318.487</b></div><div class="stat"><small>Nível</small><b>71</b></div><div class="stat"><small>Ranking · servidor 6</small><b>Top 2 global</b></div></div>
-    <div class="card video">
-      <video controls preload="metadata" playsinline poster="/video/capa.jpg">
-        <source src="/video/conta.mp4" type="video/mp4">
-        Seu navegador não conseguiu tocar o vídeo.
-      </video>
-    </div>
+    <div class="stats"><div class="stat"><small>Poder total</small><b>PC 1.393.875</b></div><div class="stat"><small>Nível</small><b>72</b></div><div class="stat"><small>Servidor 6</small><b>Top 2 global</b></div></div>
     <div class="gal" id="gal"></div>
   </div></section>
 
@@ -482,8 +474,11 @@ $('btnCons').onclick = async () => {
 $('cons').onkeydown = e => { if (e.key === 'Enter') $('btnCons').click(); };
 
 /* ---------- Galeria da conta ---------- */
-const FOTOS = [['pc', 'Poder total: PC 1.318.487'], ['1', 'Cooler Dourado UR'], ['2', 'Broly UR'], ['3', 'Goku Black UR'], ['4', 'Lista de guerreiros'],
-  ['5', 'Equipamentos de combate'], ['6', 'Shenlong'], ['7', 'Alma Saiyajin'], ['8', 'Acessórios']];
+const FOTOS = [
+  'Tela inicial · PC 1.393.875', 'Cooler Dourado UR', 'Broly UR', 'Cumber UR', 'Goku Black (Rosé) UR', 'Kale UR',
+  'Lista de guerreiros', 'Arena', 'VIP 12', 'Bolsa de itens', 'Equipamentos de combate', 'Assistência · Shenlong',
+  'Supremo · Cumber', 'Supremo · Cooler Dourado', 'Afeição', 'Revide de atributos',
+].map((t, i) => [String(i + 1).padStart(2, '0'), t]);
 let lbI = 0;
 FOTOS.forEach(([f, t], i) => {
   const b = document.createElement('button');
