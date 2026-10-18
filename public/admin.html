@@ -63,6 +63,7 @@
   .tag.pago{background:rgba(61,220,132,.15);color:var(--ok)}
   .tag.pendente{background:rgba(255,198,26,.15);color:var(--warn)}
   .tag.expirado{background:#23232d;color:var(--mut)}
+  .tag.reembolsado{background:rgba(139,61,255,.18);color:#c4a1ff}
   .tag.cancelado{background:#23232d;color:var(--mut);text-decoration:line-through}
   .tag.conflito{background:rgba(255,107,107,.15);color:var(--err)}
   dialog{border:0;border-radius:16px;padding:0;width:min(440px,94vw);background:var(--card);color:var(--tx);box-shadow:0 20px 60px rgba(0,0,0,.6)}
@@ -117,6 +118,7 @@
         <option value="expirado">Expirados</option>
         <option value="conflito">Conflito</option>
         <option value="cancelado">Cancelados</option>
+        <option value="reembolsado">Reembolsados</option>
       </select>
       <button class="btn sec" id="csv">Baixar planilha (CSV)</button>
       <button class="btn sec" id="nova">+ Venda manual</button>
@@ -222,15 +224,29 @@ function tabela() {
     <td><span class="tag ${o.status}">${o.status}</span></td>
     <td>${new Date(o.pagoEm || o.criadoEm).toLocaleDateString('pt-BR')}<small>${new Date(o.pagoEm || o.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></td>
     <td><div class="actions">${
-      o.status === 'pago' ? `<a class="btn sec sm" target="_blank" rel="noopener" href="https://wa.me/55${esc(o.telefone)}?text=${encodeURIComponent('Olá ' + o.nome.split(' ')[0] + '! Seu código da rifa é ' + o.codigo + ' (números ' + o.numeros.map(n => String(n).padStart(w, '0')).join(', ') + ').')}">Enviar código</a>`
-      : o.status === 'cancelado' ? ''
+      o.status === 'pago' ? `<button class="btn sec sm" data-reemb="${o.id}" data-manual="${o.mpId ? '' : '1'}">Reembolsar</button><a class="btn sec sm" target="_blank" rel="noopener" href="https://wa.me/55${esc(o.telefone)}?text=${encodeURIComponent('Olá ' + o.nome.split(' ')[0] + '! Seu código da rifa é ' + o.codigo + ' (números ' + o.numeros.map(n => String(n).padStart(w, '0')).join(', ') + ').')}">Enviar código</a>`
+      : (o.status === 'cancelado' || o.status === 'reembolsado') ? ''
       : `<button class="btn sm" data-conf="${o.id}">Confirmar pago</button><button class="btn sec sm" data-canc="${o.id}">Cancelar</button>`}</div></td>
   </tr>`).join('');
   $('vazio').classList.toggle('hide', lista.length > 0);
 }
 
 $('t').onclick = async e => {
-  const c = e.target.dataset.copy, id = e.target.dataset.conf, canc = e.target.dataset.canc;
+  const c = e.target.dataset.copy, id = e.target.dataset.conf, canc = e.target.dataset.canc, reemb = e.target.dataset.reemb;
+  if (reemb) {
+    const o = pedidos.find(x => x.id === reemb), manual = e.target.dataset.manual === '1';
+    const msg = manual
+      ? `Marcar a compra de ${o.nome} (${brl(o.valor)}) como reembolsada? Ela NÃO foi paga pelo Mercado Pago: devolva o dinheiro por fora. Os números serão liberados e o código deixa de valer.`
+      : `Devolver ${brl(o.valor)} para ${o.nome} pelo Mercado Pago? Os números serão liberados e o código deixa de valer. Isso não pode ser desfeito.`;
+    if (confirm(msg)) {
+      e.target.disabled = true;
+      const r = await fetch('/api/admin/reembolsar/' + reemb, { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' }, body: JSON.stringify({ manual }) });
+      const j = await r.json();
+      alert(r.ok ? 'Reembolso concluído.' : 'Não foi possível: ' + j.erro);
+      carregar();
+    }
+    return;
+  }
   if (canc && confirm('Cancelar este pedido? Os números voltam a ficar livres.')) {
     await fetch('/api/admin/cancelar/' + canc, { method: 'POST', headers: H() }); carregar();
   }

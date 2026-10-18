@@ -145,7 +145,7 @@ async function mpCriarPix(order) {
 
 // Consulta o pagamento direto na API do MP (nunca confia no corpo do webhook)
 async function mpChecar(order) {
-  if (!CFG.mpToken || !order.mpId || order.status === 'pago' || order.status === 'conflito') return;
+  if (!CFG.mpToken || !order.mpId || ['pago', 'conflito', 'reembolsado'].includes(order.status)) return;
   const r = await fetch(`${MP}/${order.mpId}`, { headers: mpHeaders() });
   if (!r.ok) return;
   const j = await r.json();
@@ -179,7 +179,7 @@ function gerarCodigo() {
 function pagar(order) {
   if (order.status === 'pago') return;
   // Se o prazo expirou, só confirma se os números ainda estiverem livres
-  if (order.status === 'expirado') {
+  if (order.status === 'expirado' || order.status === 'cancelado') {
     const t = taken();
     if (order.numeros.some(n => t.has(n))) {
       // Pagou depois do prazo e alguém já levou o número: precisa de reembolso manual
@@ -330,7 +330,7 @@ const servidor = http.createServer(async (req, res) => {
     }
     if (p === '/api/consulta' && req.method === 'GET') {
       const c = (url.searchParams.get('codigo') || '').toUpperCase().trim();
-      const o = db.orders.find(x => x.codigo === c);
+      const o = db.orders.find(x => x.codigo === c && x.status === 'pago');
       return o ? json(res, 200, { codigo: o.codigo, nome: o.nome, numeros: o.numeros }) : json(res, 404, { erro: 'Código não encontrado' });
     }
     if (p === '/api/webhook/mp' && req.method === 'POST') {
@@ -380,6 +380,27 @@ const servidor = http.createServer(async (req, res) => {
       if (!o) return json(res, 404, { erro: 'Pedido não encontrado' });
       if (o.status === 'pago') return json(res, 400, { erro: 'Pedido já pago não pode ser cancelado aqui.' });
       o.status = 'cancelado'; save();
+      return json(res, 200, o);
+    }
+    if ((m = p.match(/^\/api\/admin\/reembolsar\/(\w+)$/)) && req.method === 'POST') {   // devolve o valor e libera os números
+      const o = db.orders.find(x => x.id === m[1]);
+      if (!o) return json(res, 404, { erro: 'Pedido não encontrado' });
+      if (o.status !== 'pago') return json(res, 400, { erro: 'Só dá para reembolsar compras já pagas.' });
+      const b = await body(req);
+      if (o.mpId && CFG.mpToken) {
+        const r = await fetch(`${MP}/${o.mpId}/refunds`, {
+          method: 'POST', headers: { ...mpHeaders(), 'Content-Type': 'application/json', 'X-Idempotency-Key': 'reembolso-' + o.id }, body: '{}',
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          console.error('Reembolso recusado pelo MP:', r.status, JSON.stringify(j));
+          return json(res, 502, { erro: 'O Mercado Pago não aceitou o reembolso: ' + (j.message || j.error || r.status) });
+        }
+        o.reembolsoMpId = j.id;
+      } else if (!b.manual) {
+        return json(res, 400, { erro: 'Esta compra não foi paga pelo Mercado Pago (venda manual). Devolva o valor por fora e confirme a opção manual.' });
+      }
+      o.status = 'reembolsado'; o.reembolsoEm = Date.now(); save();
       return json(res, 200, o);
     }
     if (p === '/api/admin/sortear' && req.method === 'POST') {   // sorteia entre os números pagos
