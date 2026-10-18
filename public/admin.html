@@ -72,6 +72,12 @@
   .dh button{border:0;background:none;color:var(--mut);font-size:1.5rem;cursor:pointer;line-height:1}
   .db{padding:18px}.db label{display:block;color:var(--mut);font-size:.85rem;margin:10px 0 4px}.db input{width:100%}
   .big{font:400 5rem/1 "Bebas Neue",Impact,sans-serif;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;margin:6px 0}
+  .perigo{margin:26px 0 8px;border:1px solid rgba(255,107,107,.45);border-radius:14px;padding:16px 18px;background:rgba(255,107,107,.05)}
+  .perigo h3{margin:0 0 4px;color:var(--err);font-size:1rem}
+  .perigo p{margin:0 0 12px;color:var(--mut);font-size:.92rem}
+  .btn.red{background:var(--err);color:#1a0000}
+  .res{margin-top:12px;font-size:.92rem;text-align:left;max-height:220px;overflow:auto}
+  .res li{margin:2px 0}
   .actions{display:flex;gap:6px;flex-wrap:wrap}
   .hist{margin-top:14px;border-top:1px solid var(--bd);padding-top:10px;color:var(--mut);font-size:.85rem}
   .empty{padding:36px;text-align:center;color:var(--mut)}
@@ -135,6 +141,10 @@
       </table>
       <div class="empty hide" id="vazio">Nenhuma compra encontrada.</div>
     </div>
+    <div class="perigo">
+      <h3>Zona de perigo</h3>
+      <div id="encBox"></div>
+    </div>
     <p class="foot">Atualiza sozinho a cada 15 segundos. Números reservados ficam bloqueados enquanto o comprador tem tempo de pagar.</p>
     <p class="foot hide" id="notaConf" style="color:var(--err)">⚠ Há pedido(s) com status <b>conflito</b>: o pagamento chegou depois do prazo e o número já tinha sido vendido a outra pessoa. Reembolse esse comprador pelo painel do Mercado Pago (ou entre em contato por WhatsApp).</p>
   </div>
@@ -158,6 +168,20 @@
     <div id="qrCel" style="display:inline-block;background:#fff;padding:10px;border-radius:12px;margin:14px 0"></div>
     <textarea id="linkCel" readonly style="width:100%;height:70px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:8px;font:12px monospace;resize:none"></textarea>
     <div class="hist" style="text-align:left"><b>Dispositivos autorizados</b><div id="listaDisp" style="margin-top:6px"></div></div>
+  </div>
+</dialog>
+<dialog id="dTodos">
+  <div class="dh">Cancelar rifa e reembolsar todos<button data-close aria-label="Fechar">×</button></div>
+  <div class="db">
+    <p id="tInfo" style="margin:0 0 4px"></p>
+    <p style="margin:6px 0;color:var(--mut);font-size:.9rem">Isto <b>encerra as vendas</b>, cancela reservas em aberto e devolve o valor de <b>cada compra paga pelo Mercado Pago</b>. Os códigos deixam de valer. <b>Não dá para desfazer os reembolsos.</b></p>
+    <label>Mensagem que aparecerá no site</label>
+    <input id="tMotivo" value="A conta foi vendida. Todos os valores foram devolvidos.">
+    <label>Para confirmar, digite <b>REEMBOLSAR TODOS</b></label>
+    <input id="tConf" autocomplete="off" placeholder="REEMBOLSAR TODOS">
+    <p class="err hide" id="tErr"></p>
+    <button class="btn red" id="tGo" style="width:100%;margin-top:14px" disabled>Reembolsar todos agora</button>
+    <div class="res hide" id="tRes"></div>
   </div>
 </dialog>
 <dialog id="dSort">
@@ -190,6 +214,7 @@ async function carregar() {
   $('login').classList.add('hide'); $('painel').classList.remove('hide');
   resumo(); tabela();
   $('notaConf').classList.toggle('hide', !pedidos.some(o => o.status === 'conflito'));
+  const pub = await (await fetch('/api/rifa')).json(); caixaEncerrar(pub.encerrada);
 }
 
 function resumo() {
@@ -311,6 +336,44 @@ $('sGo').onclick = async () => {
   $('sGan').textContent = '🏆 ' + j.nome;
   if (j.telefone) $('sZap').innerHTML = `<a class="btn sec sm" target="_blank" rel="noopener" href="https://wa.me/55${esc(j.telefone)}">Chamar no WhatsApp</a>`;
   $('sGo').disabled = false; $('sGo').textContent = 'Sortear novamente'; histSorteio();
+};
+
+/* ---- Encerrar rifa e reembolsar todos ---- */
+const dT = $('dTodos');
+function caixaEncerrar(enc) {
+  $('encBox').innerHTML = enc
+    ? `<p>🔒 <b>Rifa encerrada</b> em ${new Date(enc.em).toLocaleString('pt-BR')}. O site não aceita novas compras.</p>
+       <p style="margin:0 0 12px">Mensagem no site: <i>${esc(enc.motivo)}</i></p>
+       <div class="actions"><button class="btn sec" id="reabrir">Reabrir a rifa</button><button class="btn red" id="abrirTodos">Reembolsar quem faltou</button></div>`
+    : `<p>Se a conta for vendida antes do sorteio, use este botão para encerrar as vendas e devolver o dinheiro de todos de uma vez.</p>
+       <button class="btn red" id="abrirTodos">Cancelar rifa e reembolsar todos</button>`;
+}
+$('encBox').onclick = async e => {
+  if (e.target.id === 'abrirTodos') {
+    const pagos = pedidos.filter(o => o.status === 'pago' || (o.status === 'conflito' && o.mpId));
+    const mp = pagos.filter(o => o.mpId), man = pagos.length - mp.length;
+    $('tInfo').innerHTML = `<b>${pagos.length}</b> compra(s) a devolver, total <b>${brl(pagos.reduce((a, o) => a + o.valor, 0))}</b>` + (man ? `<br><span style="color:var(--warn)">${man} venda(s) manual(is) não passam pelo Mercado Pago: você terá de devolver por fora.</span>` : '');
+    $('tConf').value = ''; $('tGo').disabled = true; $('tErr').classList.add('hide'); $('tRes').classList.add('hide'); $('tGo').textContent = 'Reembolsar todos agora';
+    dT.showModal();
+  }
+  if (e.target.id === 'reabrir' && confirm('Reabrir a rifa? O site volta a aceitar compras. Reembolsos já feitos não são desfeitos.')) {
+    await fetch('/api/admin/reabrir', { method: 'POST', headers: H() }); carregar(); rifa = null;
+  }
+};
+$('tConf').oninput = () => { $('tGo').disabled = $('tConf').value.trim().toUpperCase() !== 'REEMBOLSAR TODOS'; };
+$('tGo').onclick = async () => {
+  $('tGo').disabled = true; $('tGo').textContent = 'Reembolsando…'; $('tErr').classList.add('hide');
+  const r = await fetch('/api/admin/reembolsar-todos', { method: 'POST', headers: { ...H(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmacao: $('tConf').value, motivo: $('tMotivo').value }) });
+  const j = await r.json();
+  if (!r.ok) { $('tErr').textContent = j.erro; $('tErr').classList.remove('hide'); $('tGo').textContent = 'Reembolsar todos agora'; $('tGo').disabled = false; return; }
+  const lista = (t, arr, f) => arr.length ? `<p style="margin:8px 0 2px"><b>${t}</b></p><ul style="margin:0;padding-left:18px">${arr.map(f).join('')}</ul>` : '';
+  $('tRes').innerHTML = `<p>✅ <b>${j.reembolsados}</b> de ${j.total} reembolsada(s) · ${brl(j.valor)} devolvidos.</p>`
+    + lista('Devolver por fora (venda manual):', j.manuais, x => `<li>${esc(x.nome)} · ${esc(x.telefone || 'sem telefone')} · ${brl(x.valor)}</li>`)
+    + lista('Falharam (clique de novo para tentar outra vez):', j.falhas, x => `<li>${esc(x.nome)} · ${brl(x.valor)} · ${esc(String(x.erro))}</li>`);
+  $('tRes').classList.remove('hide'); $('tGo').textContent = j.falhas.length ? 'Tentar de novo os que falharam' : 'Concluído';
+  $('tGo').disabled = !j.falhas.length; if (j.falhas.length) $('tConf').oninput();
+  carregar();
 };
 
 /* ---- Autorizar celular ---- */

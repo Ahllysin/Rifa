@@ -158,6 +158,19 @@ async function mpChecar(order) {
   pagar(order);
 }
 
+// Devolve o valor total de um pagamento do Mercado Pago. Retorna { ok, id } ou { ok: false, erro }.
+async function reembolsarMP(o) {
+  const r = await fetch(`${MP}/${o.mpId}/refunds`, {
+    method: 'POST', headers: { ...mpHeaders(), 'Content-Type': 'application/json', 'X-Idempotency-Key': 'reembolso-' + o.id }, body: '{}',
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    console.error('Reembolso recusado pelo MP:', r.status, JSON.stringify(j));
+    return { ok: false, erro: j.message || j.error || String(r.status) };
+  }
+  return { ok: true, id: j.id };
+}
+
 // Valida a assinatura do webhook (header x-signature) quando MP_WEBHOOK_SECRET estiver definido
 function mpAssinaturaOk(req, dataId) {
   if (!CFG.mpWebhookSecret) return true;
@@ -178,6 +191,8 @@ function gerarCodigo() {
 }
 function pagar(order) {
   if (order.status === 'pago') return;
+  // Rifa encerrada: pagamento que chegar agora precisa ser devolvido
+  if (db.encerrada) { order.status = 'conflito'; save(); return; }
   // Se o prazo expirou, só confirma se os números ainda estiverem livres
   if (order.status === 'expirado' || order.status === 'cancelado') {
     const t = taken();
@@ -297,9 +312,11 @@ const servidor = http.createServer(async (req, res) => {
       return json(res, 200, {
         titulo: CFG.titulo, premio: CFG.premio, descricao: CFG.descricao, dataSorteio: CFG.dataSorteio,
         whatsapp: CFG.whatsapp, vendaDireta: CFG.vendaDireta, total: CFG.totalNumeros, preco: CFG.preco, reservaMin: CFG.reservaMin,
-        ocupados, vendidos,
+        ocupados, vendidos, encerrada: db.encerrada || null,
       });
     }
+    if (p === '/api/reservar' && req.method === 'POST' && db.encerrada)
+      return json(res, 403, { erro: 'Esta rifa foi encerrada e não aceita novas compras.' });
     if (p === '/api/reservar' && req.method === 'POST') {
       const b = await body(req);
       const nome = String(b.nome || '').trim().slice(0, 80);
@@ -355,6 +372,7 @@ const servidor = http.createServer(async (req, res) => {
       return json(res, 200, o);
     }
     if (p === '/api/admin/venda' && req.method === 'POST') {   // venda manual (dinheiro, PIX direto etc.)
+      if (db.encerrada) return json(res, 400, { erro: 'A rifa está encerrada. Reabra para registrar vendas.' });
       if (!isAdmin(req)) return json(res, 401, { erro: 'Senha incorreta' });
       const b = await body(req);
       const nome = String(b.nome || '').trim().slice(0, 80);
@@ -385,23 +403,46 @@ const servidor = http.createServer(async (req, res) => {
     if ((m = p.match(/^\/api\/admin\/reembolsar\/(\w+)$/)) && req.method === 'POST') {   // devolve o valor e libera os números
       const o = db.orders.find(x => x.id === m[1]);
       if (!o) return json(res, 404, { erro: 'Pedido não encontrado' });
-      if (o.status !== 'pago') return json(res, 400, { erro: 'Só dá para reembolsar compras já pagas.' });
+      if (o.status !== 'pago' && o.status !== 'conflito') return json(res, 400, { erro: 'Só dá para reembolsar compras já pagas.' });
       const b = await body(req);
       if (o.mpId && CFG.mpToken) {
-        const r = await fetch(`${MP}/${o.mpId}/refunds`, {
-          method: 'POST', headers: { ...mpHeaders(), 'Content-Type': 'application/json', 'X-Idempotency-Key': 'reembolso-' + o.id }, body: '{}',
-        });
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          console.error('Reembolso recusado pelo MP:', r.status, JSON.stringify(j));
-          return json(res, 502, { erro: 'O Mercado Pago não aceitou o reembolso: ' + (j.message || j.error || r.status) });
-        }
-        o.reembolsoMpId = j.id;
+        const r = await reembolsarMP(o);
+        if (!r.ok) return json(res, 502, { erro: 'O Mercado Pago não aceitou o reembolso: ' + r.erro });
+        o.reembolsoMpId = r.id;
       } else if (!b.manual) {
         return json(res, 400, { erro: 'Esta compra não foi paga pelo Mercado Pago (venda manual). Devolva o valor por fora e confirme a opção manual.' });
       }
       o.status = 'reembolsado'; o.reembolsoEm = Date.now(); save();
       return json(res, 200, o);
+    }
+    if (p === '/api/admin/reembolsar-todos' && req.method === 'POST') {   // encerra a rifa e devolve tudo
+      const b = await body(req);
+      if (String(b.confirmacao || '').trim().toUpperCase() !== 'REEMBOLSAR TODOS') return json(res, 400, { erro: 'Confirmação incorreta.' });
+      db.encerrada = {
+        motivo: String(b.motivo || '').trim().slice(0, 200) || 'A conta foi vendida. Todos os valores foram devolvidos.',
+        em: (db.encerrada && db.encerrada.em) || Date.now(),
+      };
+      for (const o of db.orders) if (o.status === 'pendente') o.status = 'cancelado';   // libera reservas em aberto
+      save();
+      const alvo = db.orders.filter(o => o.status === 'pago' || (o.status === 'conflito' && o.mpId));
+      const out = { total: alvo.length, reembolsados: 0, valor: 0, manuais: [], falhas: [] };
+      for (let i = 0; i < alvo.length; i += 5) {
+        await Promise.all(alvo.slice(i, i + 5).map(async o => {
+          if (!(o.mpId && CFG.mpToken)) { out.manuais.push({ nome: o.nome, telefone: o.telefone, valor: o.valor }); return; }
+          try {
+            const r = await reembolsarMP(o);
+            if (!r.ok) return out.falhas.push({ nome: o.nome, telefone: o.telefone, valor: o.valor, erro: r.erro });
+            o.status = 'reembolsado'; o.reembolsoEm = Date.now(); o.reembolsoMpId = r.id;
+            out.reembolsados++; out.valor += o.valor;
+          } catch (e) { out.falhas.push({ nome: o.nome, telefone: o.telefone, valor: o.valor, erro: e.message }); }
+        }));
+      }
+      save();
+      return json(res, 200, out);
+    }
+    if (p === '/api/admin/reabrir' && req.method === 'POST') {
+      db.encerrada = null; save();
+      return json(res, 200, { ok: true });
     }
     if (p === '/api/admin/sortear' && req.method === 'POST') {   // sorteia entre os números pagos
       if (!isAdmin(req)) return json(res, 401, { erro: 'Senha incorreta' });

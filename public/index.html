@@ -345,6 +345,11 @@ async function carregar() {
     $('avisoCompra').innerHTML = `A conta também está à venda por <b>${v}</b>. Se for vendida antes do sorteio, a rifa é cancelada e você recebe seu dinheiro de volta.`;
   }
   ['aviso', 'faqVenda', 'avisoCompra'].forEach(id => $(id).classList.toggle('hide', !(rifa.vendaDireta > 0)));
+  if (rifa.encerrada) {   // rifa cancelada: nada de compras
+    $('aviso').innerHTML = `<b>🔒 Rifa encerrada.</b> ${rifa.encerrada.motivo.replace(/[<>&]/g, '')}`;
+    $('aviso').classList.remove('hide');
+    $('rand').disabled = true; sel.clear();
+  }
   const pct = Math.round(rifa.vendidos / rifa.total * 100);
   $('progBar').style.width = pct + '%';
   const livres = rifa.total - rifa.ocupados.length;
@@ -366,7 +371,7 @@ function desenhar() {
     if (busca && !txt.includes(busca) && !String(i).includes(busca)) continue;
     const b = document.createElement('button');
     b.className = 'n' + (sel.has(i) ? ' sel' : '');
-    b.textContent = txt; b.disabled = oc.has(i);
+    b.textContent = txt; b.disabled = oc.has(i) || !!rifa.encerrada;
     b.setAttribute('aria-pressed', sel.has(i));
     b.onclick = () => { sel.has(i) ? sel.delete(i) : (sel.size < 20 ? sel.add(i) : alert('Máximo de 20 números por compra.')); desenhar(); };
     g.appendChild(b); qtd++;
