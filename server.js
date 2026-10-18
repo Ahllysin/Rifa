@@ -271,6 +271,11 @@ const servidor = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = url.pathname;
   const ip = ipDe(req);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');                       // ninguém embute o site/painel em outra página
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) res.setHeader('Cache-Control', 'no-store');
   try {
     // Painel e API do admin: invisíveis para qualquer IP fora da lista
     if ((p.startsWith('/api/admin/') || p === '/admin' || p === '/admin.html') && !acessoAdmin(req, ip)) return negarAdmin(res, ip, p);
@@ -509,6 +514,10 @@ carregarDB().then(() => servidor.listen(CFG.porta, () => {
   console.log(`Rifa no ar: http://localhost:${CFG.porta}  |  Admin: http://localhost:${CFG.porta}/admin`);
   console.log(usaSupabase ? 'Dados no Supabase.' : 'Dados no arquivo data.json (local).');
   if (CFG.mpToken) { setInterval(conferirPendentes, 60000); conferirPendentes(); }
+  if (usaSupabase) {
+    const ping = () => fetch(`${SB_URL}/rest/v1/rifa_dados?id=eq.main&select=id`, { headers: sbH() }).catch(e => console.error('Ping Supabase:', e.message));
+    setInterval(ping, 12 * 3600e3); ping();
+  }
   if (CFG.adminSenha === 'troque-esta-senha') console.log('⚠ Troque ADMIN_SENHA antes de publicar!');
   if (CFG.mpToken) {
     console.log('Mercado Pago ligado (confirmação automática).');
